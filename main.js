@@ -1,126 +1,195 @@
+const gameStart = (() => {
 
-    // DOM Elements
-    const cells = document.querySelectorAll("[data-cell]");
-    const restartBtn = document.querySelector(".restart");
+    // Players factory function
+    const player = (marker) => {
 
-// player factory function to create multiple players
-const player = (marker) => {
-    const getMarker = () => marker;
-    return { getMarker };
-};
+        // Get player's marker
+        function getMarker() {
+            return marker;
+        };
 
-const board = (() => {
-    // Create the empty game board
-    const gameBoard = [
-        "", "", "",
-        "", "", "",
-        "", "", ""
-    ];
-
-    // Set marker to a specific index
-    function setBoardCell(index, marker) {
-        gameBoard[index] = marker
+        return { getMarker, }
     };
 
-    // Get market at index...
-    function getBoardCell(index) {
-        gameBoard[index];
-    }
-
-})();
-
-    const player1 = player("X");
-    const player2 = player("O");
-
-    let combos = [
-        [gameBoard[0], gameBoard[1], gameBoard[2]],
-        [gameBoard[3], gameBoard[4], gameBoard[5]],
-        [gameBoard[6], gameBoard[7], gameBoard[8]],
-        [gameBoard[0], gameBoard[3], gameBoard[6]],
-        [gameBoard[1], gameBoard[4], gameBoard[7]],
-        [gameBoard[2], gameBoard[5], gameBoard[8]],
-        [gameBoard[0], gameBoard[4], gameBoard[8]],
-        [gameBoard[2], gameBoard[4], gameBoard[6]]
-    ];
-
-    let round = 0;
-
-    function updateCheckWinner() {
-        combos = [
-            [gameBoard[0], gameBoard[1], gameBoard[2]],
-            [gameBoard[3], gameBoard[4], gameBoard[5]],
-            [gameBoard[6], gameBoard[7], gameBoard[8]],
-            [gameBoard[0], gameBoard[3], gameBoard[6]],
-            [gameBoard[1], gameBoard[4], gameBoard[7]],
-            [gameBoard[2], gameBoard[5], gameBoard[8]],
-            [gameBoard[0], gameBoard[4], gameBoard[8]],
-            [gameBoard[2], gameBoard[4], gameBoard[6]]
+    // gameBoard IIFE
+    const gameBoard = (() => {
+        
+        // Empty board
+        let board = [
+            0, 0, 0,
+            0, 0, 0,
+            0, 0, 0
         ];
-        return combos
-    };
 
-    // Player 1 starts
-    let currentPlayer = player1.getMarker();
-
-    // Swap turn function
-    function swapTurn() {
-        if(currentPlayer === player1.getMarker()) {
-            currentPlayer = player2.getMarker();
-        } else {
-            currentPlayer = player1.getMarker();
+        // Set a marker
+        function setBoard(index, marker) {
+            if(marker === gameFlow.playerX.getMarker()) {
+                board[index]++
+            } else if(marker === gameFlow.playerO.getMarker()) {
+                board[index]--
+            }
         };
-    };
 
-    cells.forEach((cell) => {
-        cell.addEventListener("click", cellOnClick, { once: true });
-    });
+        // Reset game board
+        function resetBoard() {
+            for(let i = 0; i < board.length; i++) {
+                board[i] = 0;
+            }
+            return board;
+        };
 
-    function cellOnClick(e) {
-        const cellIndex = e.target.id;
-        setBoardCell(cellIndex, currentPlayer);
-        e.target.innerText = currentPlayer;
-        swapTurn();
-        updateCheckWinner();
-        checkForWinners();
-        round++;
-        isDraw();
-    };
+        return {
+            board,
+            setBoard,
+            resetBoard,
+        };
+    })();
 
+    // Game flow IIFE
+    const gameFlow = (() => {
 
-    function checkForWinners() {
-        const result = combos.some((arr) => {
-            if(arr[0] === arr[1] && arr[1] === arr[2] && arr[1] !== "") {
-            return isWin();
+        // Create two players
+        const playerX = player("X");
+        const playerO = player("O");
+
+        const winConditions = (() => {
+            // Win conditions
+            let combos = [
+                [gameBoard.board[0], gameBoard.board[1], gameBoard.board[2]],
+                [gameBoard.board[3], gameBoard.board[4], gameBoard.board[5]],
+                [gameBoard.board[6], gameBoard.board[7], gameBoard.board[8]],
+                [gameBoard.board[0], gameBoard.board[3], gameBoard.board[6]],
+                [gameBoard.board[1], gameBoard.board[4], gameBoard.board[7]],
+                [gameBoard.board[2], gameBoard.board[5], gameBoard.board[8]],
+                [gameBoard.board[0], gameBoard.board[4], gameBoard.board[8]],
+                [gameBoard.board[2], gameBoard.board[4], gameBoard.board[6]]
+            ];
+
+            // updateCombos allows to take the updated game board values every turn
+            function updateCombos(newBoard) {
+                combos = [
+                    [newBoard[0], newBoard[1], newBoard[2]],
+                    [newBoard[3], newBoard[4], newBoard[5]],
+                    [newBoard[6], newBoard[7], newBoard[8]],
+                    [newBoard[0], newBoard[3], newBoard[6]],
+                    [newBoard[1], newBoard[4], newBoard[7]],
+                    [newBoard[2], newBoard[5], newBoard[8]],
+                    [newBoard[0], newBoard[4], newBoard[8]],
+                    [newBoard[2], newBoard[4], newBoard[6]]
+                ];
+                return combos;
             };
-        });
-    return result;
-    };
 
-    function isWin() {
-        console.log("WE HAVE A WINNER!");
-    };
+            return { updateCombos, }
+        })();
 
-    function isDraw() {
-        if(round === 9 && !isWin()) {
-            console.log("IT'S A DRAW!")
-        };
-    };
+        // Swap turn
+        const currentMarker = (() => {
+            let playerTurn = playerX.getMarker();
+            function getPlayer() {
+                return playerTurn;
+            };
 
-    function reset() {
-        for(let i = 0; i < gameBoard.length; i++) {
-            gameBoard[i] = "";
-        };
+            function resetPlayer() {
+                playerTurn = playerX.getMarker();
+                return playerTurn;
+            };
 
+            function swapPlayer() {
+                if(playerTurn === playerX.getMarker()) {
+                    playerTurn = playerO.getMarker();
+                } else {
+                    playerTurn = playerX.getMarker();
+                };
+                return playerTurn;
+            };
+
+            return {
+                getPlayer,
+                swapPlayer,
+                resetPlayer,
+            }
+        })();
+        
+        return { 
+            playerX,
+            playerO,
+            currentMarker,
+            winConditions,
+        }
+    })();
+
+    // Display elements and Event listeners
+    const displayController = (() => {
+        const cells = document.querySelectorAll("[data-cell]");
+        let round = 0;
+
+        console.log("X makes the first move!")
+
+        // For each cell run the private function _cellOnClick one time
         cells.forEach((cell) => {
-            cell.innerText = "";
+            cell.addEventListener("click", _cellOnClick, { once: true });
         });
 
-        updateCheckWinner();
+        function _cellOnClick(e) {
+            // Set board with index cell id and current marker from gameFlow
+            gameBoard.setBoard(e.target.id, gameFlow.currentMarker.getPlayer());
 
-        currentPlayer = player1.getMarker();
+            // Add mark to the cell visually
+            e.target.innerText = gameFlow.currentMarker.getPlayer();
 
-        round = 0;
+            // Game flow functions
+            gameFlow.currentMarker.swapPlayer();
+            round++
+            let updatedBoard = gameBoard.board;
+            let updatedCombos = gameFlow.winConditions.updateCombos(updatedBoard);
+            console.log(`Round: ${round}`)
+            isWin(updatedCombos);
+        }; 
 
-        gameStart();
+        // Check if we have a winner or it's a draw
+        function isWin(combos) {
+            // Check if some of the arrays in combos have a sum of 3 or -3 (same marker in a win condition)
+            let result = combos.some((arr) => {
+                let sum = 0;
+                for(let i = 0; i < arr.length; i++) {
+                    sum += arr[i];
+                }
+                return sum === 3 || sum === -3;
+            })
 
-    };
+            // Console log the result (POSSIBLE CHANGE: MODAL)
+            if(result === false && round === 9) {
+                console.log("IT'S A DRAW!")
+                cells.forEach((cell) => {
+                    // Remove event listener from cell, the game will stop
+                    cell.removeEventListener("click", _cellOnClick);
+                });
+            } else if(result) {
+                console.log("WE HAVE A WINNER!")
+                cells.forEach((cell) => {
+                    cell.removeEventListener("click", _cellOnClick);
+                });
+            }
+        };
+
+        const restartBtn = document.querySelector(".restart");
+        restartBtn.addEventListener("click", reset)
+    
+        function reset() {
+            // Set the current player to x
+            gameFlow.currentMarker.resetPlayer();
+            // Reset round
+            round = 0;
+            // Reset board and win condition arrays
+            let resetBoard = gameBoard.resetBoard();
+            gameFlow.winConditions.updateCombos(resetBoard);
+            // Add again the _cellOnClick event (removed by the win/draw)
+            const cells = document.querySelectorAll("[data-cell]");
+            cells.forEach((cell) => {
+                cell.innerText = "";
+                cell.addEventListener("click", _cellOnClick, { once: true });
+            })
+        }
+    })();
+})();
